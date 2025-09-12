@@ -17,6 +17,14 @@ def main():
     order, d2, _ = dijkstra(g2, 0)
     print("Dijkstra order:", order, "dist:", d2)  # Expected d2[2] = 7
 
+    # String-labeled vertices with a negative cycle for Bellman-Ford
+    g3 = Graph(0, directed=True)
+    g3.add_edge('A', 'B', 1)
+    g3.add_edge('B', 'C', 1)
+    g3.add_edge('C', 'A', -3)  # total cycle weight: -1 (negative)
+    ok3, d3, _ = bellman_ford(g3, 'A')
+    print("Bellman-Ford (strings, negative cycle) ok:", ok3)  # Expected: False
+
 
 if __name__ == "__main__":
     main()

@@ -1,16 +1,28 @@
 from data_structures.matrix import Matrix
 
-def partition(matrix, low: int, high: int, pivot: int= 0) -> int:
+def partition(matrix, low: int, high: int, pivot: int | None = None) -> int:
     """Lomuto-style partition on a 1xN Matrix vector.
 
     Args:
         matrix: Matrix(1, N)
         low: start index
         high: end index (pivot will be moved here)
-        pivot: pivot index to partition around
+        pivot: pivot index within [low, high]; defaults to high if None
     Returns:
         final index of the pivot after partitioning
     """
+    if pivot is None:
+        pivot = high
+    # If pivot is not a valid index in [low, high], interpret it as a pivot VALUE
+    if not (isinstance(pivot, int) and low <= pivot <= high):
+        pivot_value = pivot
+        pivot = None
+        for idx in range(low, high + 1):
+            if matrix.get(0, idx) == pivot_value:
+                pivot = idx
+                break
+        if pivot is None:
+            raise ValueError("pivot value not found in the specified range")
     pivot_value = matrix.get(0, pivot)
     matrix.set(0, pivot, matrix.get(0, high))
     matrix.set(0, high, pivot_value)
