@@ -1,5 +1,5 @@
 from data_structures.graph import Graph
-from algorithms.mst import prim_mst, kruskal_mst
+from algorithms.greedy.mst import prim_mst, kruskal_mst
 
 
 def main():

@@ -1,5 +1,5 @@
 from data_structures.graph import Graph
-from algorithms.shortest_paths import bellman_ford, dijkstra
+from algorithms.other_graph_algorithms.shortest_paths import bellman_ford, dijkstra
 
 
 def main():

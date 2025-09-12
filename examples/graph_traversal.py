@@ -1,5 +1,5 @@
 from data_structures.graph import Graph
-from algorithms.traversal import dfs, dfs_plus, bfs
+from algorithms.other_graph_algorithms.traversal import dfs, dfs_plus, bfs
 
 
 def main():

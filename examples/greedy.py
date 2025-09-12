@@ -1,6 +1,6 @@
 from data_structures.matrix import Matrix
-from algorithms.greedy_knapsack import fractional_knapsack, linear_time_knapsack
-from algorithms.greedy_scheduling import activity_selection, deadline_scheduler
+from algorithms.greedy.greedy_knapsack import fractional_knapsack, linear_time_knapsack
+from algorithms.greedy.greedy_scheduling import activity_selection, deadline_scheduler
 
 
 def main():
@@ -14,7 +14,7 @@ def main():
     print("fractional value:", val)
 
     x01, val01 = linear_time_knapsack(p, w, 50)
-    print("0/1 knapsack value:", val01)
+    print("linear time fractional knapsack value:", val01)
 
     s = Matrix(1, 5)
     f = Matrix(1, 5)

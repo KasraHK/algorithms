@@ -1,4 +1,4 @@
-from algorithms.huffman import build_huffman_tree, huffman_codes
+from algorithms.greedy.huffman import build_huffman_tree, huffman_codes
 
 
 def main():
