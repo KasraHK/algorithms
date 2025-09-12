@@ -1,4 +1,11 @@
-"""Lightweight graph representation and utilities."""
+"""Lightweight graph representation and utilities.
+
+Graph supports arbitrary vertex ids (ints, strings, etc.). Adjacency is
+stored as a dict: vertex -> list of outgoing `Edge` objects. Some algorithms
+that produce matrices (e.g., Floyd–Warshall via adjacency matrix) still
+assume integer vertex ids in [0, n-1]. For those, either use integer ids or
+add a mapping layer.
+"""
 
 from data_structures.matrix import Matrix
 
@@ -33,9 +40,15 @@ class Graph:
     def __init__(self, num_vertices: int, directed: bool = True):
         self.n = num_vertices
         self.directed = directed
+        # Allow dynamic vertex ids: precreate 0..n-1, but permit new keys later
         self.adj = {i: [] for i in range(num_vertices)}
 
-    def add_edge(self, u: int, v: int, w: int = 1):
+    def add_edge(self, u, v, w: int = 1):
+        # Ensure vertices exist in adjacency
+        if u not in self.adj:
+            self.adj[u] = []
+        if v not in self.adj:
+            self.adj[v] = []
         e = Edge(u, v, w, directed=self.directed)
         self.adj[u].append(e)
         if not self.directed:

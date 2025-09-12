@@ -2,41 +2,57 @@ from data_structures.graph import Graph, Edge
 from data_structures.heap import MinHeap
 
 
-def prim_mst(graph: Graph, start: int = 0, inf_value: int = 10**12):
+def prim_mst(graph: Graph, start = 0, inf_value: int = 10**12):
     """Prim's MST algorithm using a min-heap.
+
+    This version supports arbitrary vertex ids (e.g., strings) by using
+    dictionaries keyed by vertex id and a heap tie-breaker to avoid
+    comparing unlike vertex types.
 
     Args:
         graph: Graph instance (undirected expected)
         start: starting vertex id
         inf_value: large number used as infinity
     Returns:
-        parent: list where parent[v] is the parent of v in MST (or -1)
-        key: list of min edge weight to connect each vertex
-        order: list of extraction order from heap
+        parent: dict mapping vertex -> parent in the MST (None for root)
+        key: dict mapping vertex -> connecting edge weight in the MST
+        order: list of vertices in the order they were finalized
+        mst_edges: list of (parent, vertex, weight) selected in the MST
+        total_cost: sum of weights in the MST
     """
-    n = graph.n
-    key = [inf_value] * n
-    parent = [-1] * n
-    in_heap = [True] * n
+    # Use dicts keyed by actual vertex ids to support non-integer labels
+    vertices = list(graph.adj.keys())
+    if start not in graph.adj:
+        graph.adj[start] = []
+        vertices.append(start)
+    key = {u: inf_value for u in vertices}
+    parent = {u: None for u in vertices}
+    in_heap = {u: True for u in vertices}
     key[start] = 0
     heap = MinHeap()
-    for v in range(n):
-        heap.push((key[v], v))
+    tiebreak = 0
+    for v in vertices:
+        tiebreak += 1
+        heap.push((key[v], tiebreak, v))  # (weight, tie, vertex)
     order = []
 
     while not heap.is_empty():
-        k, u = heap.pop()
-        if not in_heap[u]:
+        _, _, u = heap.pop()
+        if not in_heap.get(u, False):
             continue
         in_heap[u] = False
         order.append(u)
         for e in graph.neighbors(u):
             v = e.v
-            if in_heap[v] and e.w < key[v]:
+            if in_heap.get(v, False) and e.w < key.get(v, inf_value):
                 key[v] = e.w
                 parent[v] = u
-                heap.push((key[v], v))
-    return parent, key, order
+                tiebreak += 1
+                heap.push((key[v], tiebreak, v))
+    # Build explicit MST edge list (parent[v] --key[v]--> v)
+    mst_edges = [(pu, v, key[v]) for v, pu in parent.items() if pu is not None]
+    total_cost = sum(w for _, _, w in mst_edges)
+    return parent, key, order, mst_edges, total_cost
 
 
 class DisjointSet:

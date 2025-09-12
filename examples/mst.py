@@ -9,10 +9,11 @@ def main():
     ]
     for u, v, w in edges:
         g.add_edge(u, v, w)
-    parent, key, order = prim_mst(g, start=0)
-    print("Prim parent:", parent)
+    parent, key, order, edges, total = prim_mst(g, start=0)
+    print("Prim parent:", parent, "edges:", edges, "\ntotal:", total)  # Expected total: 16
+    print("Prim edges:", edges)
     mst, total = kruskal_mst(g)
-    print("Kruskal total:", total, "edges:", mst)
+    print("Kruskal total:", total, "edges:", mst)  # Expected total: 16
 
 
 if __name__ == "__main__":

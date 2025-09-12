@@ -8,14 +8,14 @@ def main():
     for u, v, w in edges:
         g.add_edge(u, v, w)
     ok, d, _ = bellman_ford(g, 0)
-    print("Bellman-Ford ok:", ok, "dist:", d)
+    print("Bellman-Ford ok:", ok, "dist:", d)  # Expected ok: True
 
     g2 = Graph(5, directed=False)
-    edges2 = [(0,1,10),(0,4,5),(1,2,1),(4,1,3),(4,2,9),(4,3,2),(3,2,4)]
+    edges2 = [(0,1,10),(0,4,5),(1,2,1),(4,1,3),(4,2,9),(4,3,2),(3,2,4)]  # (u, v, w)
     for u, v, w in edges2:
         g2.add_edge(u, v, w)
     order, d2, _ = dijkstra(g2, 0)
-    print("Dijkstra order:", order, "dist:", d2)
+    print("Dijkstra order:", order, "dist:", d2)  # Expected d2[2] = 7
 
 
 if __name__ == "__main__":

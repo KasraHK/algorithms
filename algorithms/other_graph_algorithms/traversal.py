@@ -5,17 +5,24 @@ from data_structures.queue import Queue
 def dfs(graph: Graph):
     """Depth-first search with discovery/finish times and parents.
 
+    Supports arbitrary vertex ids by using dicts keyed by vertex id.
+
+    Args:
+        graph: Graph instance (directed or undirected)
+
     Returns:
-        color, d, f, parent
+        color: dict vertex -> 'white'|'gray'|'black' state
+        d: dict vertex -> discovery time
+        f: dict vertex -> finish time
+        parent: dict vertex -> predecessor in DFS forest
     """
-    n = graph.n
-    color = {u: 'white' for u in range(n)}
-    d = {u: 0 for u in range(n)}
-    f = {u: 0 for u in range(n)}
-    parent = {u: None for u in range(n)}
+    color = {u: 'white' for u in graph.adj.keys()}
+    d = {u: 0 for u in graph.adj.keys()}
+    f = {u: 0 for u in graph.adj.keys()}
+    parent = {u: None for u in graph.adj.keys()}
     time = [0]
 
-    def visit(u: int):
+    def visit(u):
         color[u] = 'gray'
         time[0] += 1
         d[u] = time[0]
@@ -28,7 +35,7 @@ def dfs(graph: Graph):
         time[0] += 1
         f[u] = time[0]
 
-    for u in range(n):
+    for u in list(graph.adj.keys()):
         if color[u] == 'white':
             visit(u)
     return color, d, f, parent
@@ -37,23 +44,36 @@ def dfs(graph: Graph):
 def dfs_plus(graph: Graph):
     """DFS with edge classification, SCC (for directed), articulation points, and bridges.
 
+    Supports arbitrary vertex ids by using dicts keyed by vertex id. For SCC,
+    runs Kosaraju on a dynamically built transpose graph.
+
+    Args:
+        graph: Graph instance
+
     Returns:
-        result dict with keys: color, d, f, parent, edges, scc, articulation, bridges
+        dict with keys:
+          - color: vertex -> color
+          - d: vertex -> discovery time
+          - f: vertex -> finish time
+          - parent: vertex -> predecessor
+          - edges: dict with lists for 'tree', 'back', 'forward', 'cross'
+          - scc: list of strongly connected components (lists of vertices)
+          - articulation: list of articulation points (undirected only)
+          - bridges: list of (u, v) bridge edges (undirected only)
     """
-    n = graph.n
-    color = {u: 'white' for u in range(n)}
-    d = {u: 0 for u in range(n)}
-    f = {u: 0 for u in range(n)}
-    parent = {u: None for u in range(n)}
+    color = {u: 'white' for u in graph.adj.keys()}
+    d = {u: 0 for u in graph.adj.keys()}
+    f = {u: 0 for u in graph.adj.keys()}
+    parent = {u: None for u in graph.adj.keys()}
     time = [0]
     edges = { 'tree': [], 'back': [], 'forward': [], 'cross': [] }
-    low = {u: 0 for u in range(n)}
+    low = {u: 0 for u in graph.adj.keys()}
     articulation = set()
     bridges = []
 
     order = []
 
-    def visit(u: int, root=False):
+    def visit(u, root=False):
         color[u] = 'gray'
         time[0] += 1
         d[u] = low[u] = time[0]
@@ -85,21 +105,21 @@ def dfs_plus(graph: Graph):
         if root and not graph.directed and children > 1:
             articulation.add(u)
 
-    for u in range(n):
+    for u in list(graph.adj.keys()):
         if color[u] == 'white':
             visit(u, root=True)
 
     scc = []
     if graph.directed:
         # Kosaraju: run DFS on transpose using reverse finish order
-        gt = Graph(n, directed=True)
-        for u in range(n):
+        gt = Graph(0, directed=True)
+        for u in graph.adj.keys():
             for e in graph.neighbors(u):
                 gt.add_edge(e.v, e.u, e.w)
-        color2 = {u: 'white' for u in range(n)}
+        color2 = {u: 'white' for u in gt.adj.keys()}
         comp = []
 
-        def visit_t(u: int):
+        def visit_t(u):
             color2[u] = 'gray'
             comp.append(u)
             for e in gt.neighbors(u):
@@ -126,16 +146,25 @@ def dfs_plus(graph: Graph):
     }
 
 
-def bfs(graph: Graph, s: int, inf_value: int = 10**12):
+def bfs(graph: Graph, s, inf_value: int = 10**12):
     """Breadth-first search from source s.
 
+    Supports arbitrary vertex ids by using dicts keyed by vertex id.
+
+    Args:
+        graph: Graph instance
+        s: source vertex id
+        inf_value: distance for unreachable vertices
+
     Returns:
-        color, d, parent, order
+        color: dict vertex -> 'white'|'gray'|'black'
+        d: dict vertex -> BFS distance from s
+        parent: dict vertex -> predecessor
+        order: list of vertices in dequeue order
     """
-    n = graph.n
-    color = {u: 'white' for u in range(n)}
-    d = {u: inf_value for u in range(n)}
-    parent = {u: None for u in range(n)}
+    color = {u: 'white' for u in graph.adj.keys()}
+    d = {u: inf_value for u in graph.adj.keys()}
+    parent = {u: None for u in graph.adj.keys()}
     q = Queue()
     color[s] = 'gray'
     d[s] = 0
