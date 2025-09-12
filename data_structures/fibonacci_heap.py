@@ -1,3 +1,9 @@
+"""Fibonacci heap implementation.
+
+Includes node class and heap with standard operations for demos.
+"""
+
+
 class FibNode:
     """Node for Fibonacci Heap.
 

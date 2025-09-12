@@ -1,3 +1,6 @@
+"""Queue data structure implemented with a circular buffer."""
+
+
 class QueueEmptyError(Exception):
     """Raised when dequeuing from an empty queue."""
 
@@ -5,7 +8,12 @@ class QueueEmptyError(Exception):
 class Queue:
     """A simple FIFO queue implemented with a circular buffer.
 
-    Provides enqueue, dequeue, peek, is_empty, and size operations.
+    Methods
+    - enqueue(item): add to tail
+    - dequeue(): remove from head
+    - peek(): view head without removing
+    - is_empty(): whether queue is empty
+    - __len__(): current number of items
     """
 
     def __init__(self, capacity: int = 16):

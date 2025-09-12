@@ -1,3 +1,6 @@
+"""Common node helpers for trees and graphs used by algorithms and examples."""
+
+
 class TreeNode:
     """Binary tree node for trees and Huffman coding.
 

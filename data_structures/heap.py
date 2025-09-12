@@ -1,9 +1,12 @@
+"""Binary heap implementations: MinHeap and MaxHeap."""
+
+
 class HeapEmptyError(Exception):
     """Raised when extracting from an empty heap."""
 
 
 class MinHeap:
-    """A simple binary min-heap implemented without external libraries.
+    """A binary min-heap.
 
     Supports push, peek, pop, size, and is_empty operations.
     Stores arbitrary comparable items; for keyed items use tuples (key, value).

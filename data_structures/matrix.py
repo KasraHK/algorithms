@@ -1,35 +1,48 @@
+"""Matrix data structure utilities.
+
+Provides a lightweight 2D matrix with helpers for vector operations, sorting,
+basic arithmetic, submatrix operations, and Strassen multiplication.
+"""
+
+
 class Matrix:
+    """Simple row-major matrix.
+
+    Use rows=1 to represent vectors. The implementation avoids external libs
+    and is intended for educational purposes and algorithm demos.
+    """
+
     def __init__(self, rows, cols, default_value=0):
         self.rows = rows
         self.cols = cols
         self.data = [[default_value for _ in range(cols)] for _ in range(rows)]
-        """Matrix data structure.
-
-        If used as a vector/array, construct with rows=1 and cols=n.
-        Methods in this class avoid external libraries.
-        """
         
     def len(self):
+        """Return length for vectors or (rows, cols) for matrices."""
         if self.rows == 1:
             return self.cols
         return (self.rows, self.cols)
 
     def get(self, row, col):
+        """Get value at (row, col). Raises IndexError if out of bounds."""
         if 0 <= row < self.rows and 0 <= col < self.cols:
             return self.data[row][col]
         else:
             raise IndexError("Index out of bounds")
 
     def set(self, row, col, value):
+        """Set value at (row, col). Raises IndexError if out of bounds."""
         if 0 <= row < self.rows and 0 <= col < self.cols:
             self.data[row][col] = value
         else:
             raise IndexError("Index out of bounds")
         
     def is_empty(self):
+        """Return True if matrix has zero rows or zero cols."""
         return self.rows == 0 or self.cols == 0
     
     def __bool__(self):
+        """Truthiness: empty matrices are False, others True."""
         return not self.is_empty()
     
     def __getitem__(self, pidx, sidx=None):
@@ -60,7 +73,7 @@ class Matrix:
         self.data[0][i], self.data[0][j] = self.data[0][j], self.data[0][i]
 
     def copy(self):
-        """Deep copy of matrix."""
+        """Return a deep copy of the matrix."""
         m = Matrix(self.rows, self.cols)
         for i in range(self.rows):
             for j in range(self.cols):
@@ -68,6 +81,7 @@ class Matrix:
         return m
             
     def add_row(self, values=None):
+        """Append a row; values defaults to zeros of current column count."""
         if values is None:
             values = [0] * self.cols
         elif len(values) != self.cols:
@@ -76,12 +90,14 @@ class Matrix:
         self.rows += 1
         
     def merge_rows(self, other):
+        """Concatenate rows of another matrix with same number of columns."""
         if self.cols != other.cols:
             raise ValueError("Matrices must have the same number of columns to merge rows")
         self.data.extend(other.data)
         self.rows += other.rows
         
     def merge_columns(self, other):
+        """Concatenate columns of another matrix with same number of rows."""
         if self.rows != other.rows:
             raise ValueError("Matrices must have the same number of rows to merge columns")
         for i in range(self.rows):
@@ -89,6 +105,7 @@ class Matrix:
         self.cols += other.cols
         
     def add_column(self, values=None):
+        """Append a column; values defaults to zeros of current row count."""
         if values is None:
             values = [0] * self.rows
         elif len(values) != self.rows:
@@ -98,11 +115,13 @@ class Matrix:
         self.cols += 1
 
     def zero(self):
+        """Set all entries to 0."""
         for i in range(self.rows):
             for j in range(self.cols):
                 self.data[i][j] = 0
 
     def identity(self):
+        """Transform into an identity matrix (must be square)."""
         if self.rows != self.cols:
             raise ValueError("Identity matrix must be square")
         self.zero()
@@ -110,9 +129,11 @@ class Matrix:
             self.data[i][i] = 1
 
     def __str__(self):
+        """Pretty string representation with space-separated rows."""
         return '\n'.join([' '.join(map(str, row)) for row in self.data])
 
     def transpose(self):
+        """Return the transpose of the matrix as a new Matrix."""
         transposed = Matrix(self.cols, self.rows)
         for i in range(self.rows):
             for j in range(self.cols):
@@ -184,6 +205,7 @@ class Matrix:
         return result
     
     def add(self, other):
+        """Element-wise addition; returns a new Matrix."""
         if self.rows != other.rows or self.cols != other.cols:
             raise ValueError("Matrices must have the same dimensions to add")
         result = Matrix(self.rows, self.cols)
@@ -193,6 +215,7 @@ class Matrix:
         return result
     
     def subtract(self, other):
+        """Element-wise subtraction; returns a new Matrix."""
         if self.rows != other.rows or self.cols != other.cols:
             raise ValueError("Matrices must have the same dimensions to subtract")
         result = Matrix(self.rows, self.cols)
@@ -202,6 +225,7 @@ class Matrix:
         return result
     
     def multiply(self, other):
+        """Matrix multiplication; returns a new Matrix."""
         if self.cols != other.rows:
             raise ValueError("Incompatible dimensions for multiplication")
         result = Matrix(self.rows, other.cols)
@@ -214,6 +238,7 @@ class Matrix:
         return result
     
     def submatrix(self, row_start, col_start, row_end=None, col_end=None):
+        """Return a copy of the specified submatrix range."""
         if row_end == None:
             row_end = self.rows
         if col_end == None:
@@ -227,6 +252,7 @@ class Matrix:
         return sub
     
     def set_submatrix(self, row_start, row_end, col_start, col_end, sub):
+        """Overwrite a region with entries from given submatrix."""
         if row_start < 0 or row_end > self.rows or col_start < 0 or col_end > self.cols:
             raise IndexError("Submatrix indices out of bounds")
         if (row_end - row_start != sub.rows) or (col_end - col_start != sub.cols):
@@ -238,6 +264,7 @@ class Matrix:
     
     # Strassen's matrix multiplication
     def strassen_multiply(self, other):
+        """Strassen's multiplication for same-size square matrices; returns new Matrix."""
         if self.rows != self.cols or other.rows != other.cols or self.rows != other.rows:  # only for square matrices of same size
             raise ValueError("Strassen's algorithm requires square matrices of the same size")
         n = self.rows

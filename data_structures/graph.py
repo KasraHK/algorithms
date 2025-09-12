@@ -1,3 +1,5 @@
+"""Lightweight graph representation and utilities."""
+
 from data_structures.matrix import Matrix
 
 
