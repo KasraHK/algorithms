@@ -1,6 +1,14 @@
 from data_structures.matrix import Matrix
 
 def formal_min(matrix: Matrix, col: int) -> int:
+    """Return the minimum of first `col` elements in a 1xN Matrix vector.
+
+    Args:
+        matrix: Matrix(1, N) vector
+        col: number of elements to consider from start (1..N)
+    Returns:
+        minimum value among matrix[0][0..col-1]
+    """
     if matrix.is_empty() or col < 0:
         raise ValueError("Matrix is empty or column index is out of bounds")
     min_value = matrix[0][col]
@@ -9,6 +17,7 @@ def formal_min(matrix: Matrix, col: int) -> int:
             min_value = matrix[0][i]
     return min_value
 def formal_max(matrix: Matrix, col: int) -> int:
+    """Return the maximum of first `col` elements in a 1xN Matrix vector."""
     if matrix.is_empty() or col < 0:
         raise ValueError("Matrix is empty or column index is out of bounds")
     max_value = matrix[0][col]
@@ -18,6 +27,7 @@ def formal_max(matrix: Matrix, col: int) -> int:
     return max_value
 
 def formal_min_max(matrix: Matrix) -> tuple[int, int]:
+    """Compute min and max of a 1xN Matrix vector by scanning once."""
     col = len(matrix[0])
     if matrix.is_empty() or col < 0:
         raise ValueError("Matrix is empty or column index is out of bounds")
@@ -38,6 +48,15 @@ def formal_min_max(matrix: Matrix) -> tuple[int, int]:
     return min_value, max_value
 
 def min_max(l: int, r: int, matrix: Matrix) -> tuple[int, int]:
+    """Divide-and-conquer min/max on subarray [l..r] of Matrix vector.
+
+    Args:
+        l: left index inclusive
+        r: right index inclusive
+        matrix: Matrix(1, N) vector
+    Returns:
+        tuple(min_value, max_value)
+    """
     if l == r:
         return matrix[0][l], matrix[0][l]
     if r == l + 1:

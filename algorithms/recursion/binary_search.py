@@ -1,6 +1,14 @@
 from data_structures.matrix import Matrix
 
 def binary_search(matrix: Matrix, target: int) -> bool:  # this matrix is a sorted vector
+    """Iterative binary search on a sorted 1xN Matrix vector.
+
+    Args:
+        matrix: Matrix(1, N) sorted in non-decreasing order
+        target: value to search
+    Returns:
+        True if target exists, otherwise False
+    """
     if matrix.is_empty() or not matrix[0]:
         return False
     cols = len(matrix[0])
@@ -19,6 +27,16 @@ def binary_search(matrix: Matrix, target: int) -> bool:  # this matrix is a sort
 
 
 def recursive_binary_search(matrix: Matrix, left: int, right: int, target: int) -> bool:
+    """Recursive binary search on a sorted 1xN Matrix vector.
+
+    Args:
+        matrix: Matrix(1, N) sorted in non-decreasing order
+        left: left index (inclusive)
+        right: right index (inclusive)
+        target: value to search
+    Returns:
+        True if target exists, otherwise False
+    """
     if left > right:
         return False
     mid = (left + right) // 2

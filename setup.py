@@ -2,7 +2,10 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='algorithm',
-    version='0.1',
-    packages=find_packages(),
+    name="algorithm",
+    version="0.1.0",
+    description="Algorithms and data structures without external deps",
+    packages=find_packages(include=["algorithms", "data_structures", "examples"]),
+    python_requires=">=3.9",
+    install_requires=[],
 )

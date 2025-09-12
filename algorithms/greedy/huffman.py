@@ -50,9 +50,4 @@ def huffman_codes(root: TreeNode):
     dfs(root, "")
     return codes
 
-
-if __name__ == "__main__":
-    initial = [("a", 30), ("b", 10), ("c", 7), ("D", 8), ("e", 40), ("f", 14)]
-    root = build_huffman_tree(initial)
-    codes = huffman_codes(root)
-    print(codes)
+ 

@@ -1,6 +1,16 @@
 from data_structures.matrix import Matrix
 
 def partition(matrix, low: int, high: int, pivot: int= 0) -> int:
+    """Lomuto-style partition on a 1xN Matrix vector.
+
+    Args:
+        matrix: Matrix(1, N)
+        low: start index
+        high: end index (pivot will be moved here)
+        pivot: pivot index to partition around
+    Returns:
+        final index of the pivot after partitioning
+    """
     pivot_value = matrix.get(0, pivot)
     matrix.set(0, pivot, matrix.get(0, high))
     matrix.set(0, high, pivot_value)
@@ -16,6 +26,16 @@ def partition(matrix, low: int, high: int, pivot: int= 0) -> int:
     return j
 
 def quickselect(matrix, low: int, high: int, k: int) -> int:
+    """Quickselect to find k-th smallest in Matrix vector.
+
+    Args:
+        matrix: Matrix(1, N)
+        low: start index
+        high: end index
+        k: index to select (0-based)
+    Returns:
+        value of k-th smallest element
+    """
     if low == high:
         return matrix.get(0, low)
     pivot_index = partition(matrix, low, high) # can set pivot as rand.randint(low, high)
@@ -27,11 +47,13 @@ def quickselect(matrix, low: int, high: int, k: int) -> int:
         return quickselect(matrix, pivot_index + 1, high, k)
     
 def kth_smallest(matrix, k: int) -> int:
+    """Return k-th smallest element (1-based) from Matrix vector."""
     if k < 1 or k > matrix.len():
         raise ValueError("k is out of bounds")
     return quickselect(matrix, 0, matrix.len() - 1, k - 1)
 
 def sel(matrix, l:int, r:int, k: int) -> int:
+    """Median of medians selection (deterministic select)."""
     n = r - l + 1
     if n <= 5:
         sub = [matrix.get(0, i) for i in range(l, r + 1)]
