@@ -3,6 +3,11 @@ class Matrix:
         self.rows = rows
         self.cols = cols
         self.data = [[default_value for _ in range(cols)] for _ in range(rows)]
+        """Matrix data structure.
+
+        If used as a vector/array, construct with rows=1 and cols=n.
+        Methods in this class avoid external libraries.
+        """
         
     def len(self):
         if self.rows == 1:
@@ -41,6 +46,26 @@ class Matrix:
             self.data[pidx] = value
         else:
             self.data[pidx][sidx] = value
+
+    # ---- Vector helpers ----
+    def _ensure_vector(self):
+        if self.rows != 1:
+            raise ValueError("Operation valid only for 1xN vector matrices")
+
+    def swap(self, i: int, j: int):
+        """Swap two elements in a 1xN vector."""
+        self._ensure_vector()
+        if not (0 <= i < self.cols and 0 <= j < self.cols):
+            raise IndexError("Index out of bounds")
+        self.data[0][i], self.data[0][j] = self.data[0][j], self.data[0][i]
+
+    def copy(self):
+        """Deep copy of matrix."""
+        m = Matrix(self.rows, self.cols)
+        for i in range(self.rows):
+            for j in range(self.cols):
+                m.data[i][j] = self.data[i][j]
+        return m
             
     def add_row(self, values=None):
         if values is None:
@@ -49,6 +74,19 @@ class Matrix:
             raise ValueError("Row length must match number of columns")
         self.data.append(values)
         self.rows += 1
+        
+    def merge_rows(self, other):
+        if self.cols != other.cols:
+            raise ValueError("Matrices must have the same number of columns to merge rows")
+        self.data.extend(other.data)
+        self.rows += other.rows
+        
+    def merge_columns(self, other):
+        if self.rows != other.rows:
+            raise ValueError("Matrices must have the same number of rows to merge columns")
+        for i in range(self.rows):
+            self.data[i].extend(other.data[i])
+        self.cols += other.cols
         
     def add_column(self, values=None):
         if values is None:
@@ -80,6 +118,70 @@ class Matrix:
             for j in range(self.cols):
                 transposed.set(j, i, self.get(i, j))
         return transposed
+
+    # ---- Sorting for 1xN vectors ----
+    def _partition(self, low: int, high: int) -> int:
+        self._ensure_vector()
+        pivot = self.get(0, high)
+        i = low - 1
+        for j in range(low, high):
+            if self.get(0, j) <= pivot:
+                i += 1
+                x = self.get(0, i)
+                self.set(0, i, self.get(0, j))
+                self.set(0, j, x)
+        x = self.get(0, i + 1)
+        self.set(0, i + 1, self.get(0, high))
+        self.set(0, high, x)
+        return i + 1
+
+    def quick_sort(self):
+        """In-place quicksort for 1xN vector. Uses internal partition."""
+        self._ensure_vector()
+
+        def _qs(l, r):
+            if l < r:
+                p = self._partition(l, r)
+                _qs(l, p - 1)
+                _qs(p + 1, r)
+        _qs(0, self.cols - 1)
+
+    def merge_sort(self):
+        """Stable merge sort for 1xN vector (returns new sorted Matrix)."""
+        self._ensure_vector()
+        if self.cols <= 1:
+            return self.copy()
+
+        mid = self.cols // 2
+        left = Matrix(1, mid)
+        right = Matrix(1, self.cols - mid)
+        for i in range(mid):
+            left.set(0, i, self.get(0, i))
+        for i in range(self.cols - mid):
+            right.set(0, i, self.get(0, mid + i))
+        left_sorted = left.merge_sort()
+        right_sorted = right.merge_sort()
+
+        # merge
+        result = Matrix(1, self.cols)
+        i = j = k = 0
+        while i < left_sorted.cols and j < right_sorted.cols:
+            if left_sorted.get(0, i) <= right_sorted.get(0, j):
+                result.set(0, k, left_sorted.get(0, i))
+                i += 1
+            else:
+                result.set(0, k, right_sorted.get(0, j))
+                j += 1
+            k += 1
+        while i < left_sorted.cols:
+            result.set(0, k, left_sorted.get(0, i))
+            i += 1
+            k += 1
+        while j < right_sorted.cols:
+            result.set(0, k, right_sorted.get(0, j))
+            j += 1
+            k += 1
+        return result
     
     def add(self, other):
         if self.rows != other.rows or self.cols != other.cols:
