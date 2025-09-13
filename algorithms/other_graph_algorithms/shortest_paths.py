@@ -58,7 +58,7 @@ def bellman_ford(graph: Graph, s, inf_value: int = 10**12):
     for u in graph.adj.keys():
         for e in graph.neighbors(u):
             edges.append((e.u, e.v, e.w))
-    for _ in range(len(edges)):
+    for _ in range(len(graph.adj) - 1):
         for u, v, w in edges:
             if d.get(u, inf_value) < inf_value:
                 relax(u, v, w, d, parent)

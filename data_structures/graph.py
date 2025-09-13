@@ -1,10 +1,9 @@
 """Lightweight graph representation and utilities.
 
 Graph supports arbitrary vertex ids (ints, strings, etc.). Adjacency is
-stored as a dict: vertex -> list of outgoing `Edge` objects. Some algorithms
-that produce matrices (e.g., Floyd–Warshall via adjacency matrix) still
-assume integer vertex ids in [0, n-1]. For those, either use integer ids or
-add a mapping layer.
+stored as a dict: vertex -> list of outgoing `Edge` objects. All algorithms
+now work with arbitrary vertex types, including matrix-based algorithms like
+Floyd-Warshall which automatically handle vertex-to-index mapping.
 """
 
 from data_structures.matrix import Matrix
@@ -27,6 +26,11 @@ class Edge:
         self.directed = directed
 
     def __repr__(self):
+        """String representation of edge.
+        
+        Returns:
+            String in format "u->v:w" for directed or "u{}v:w" for undirected
+        """
         br = "->" if self.directed else "{}"
         return f"{self.u}{br}{self.v}:{self.w}"
 
@@ -34,16 +38,37 @@ class Edge:
 class Graph:
     """Graph supporting adjacency list and adjacency matrix views.
 
-    Vertex ids are assumed to be integers in [0, n-1].
+    Supports arbitrary vertex ids (ints, strings, etc.). Adjacency is stored as
+    a dict: vertex -> list of outgoing `Edge` objects.
     """
 
-    def __init__(self, num_vertices: int, directed: bool = True):
+    def __init__(self, num_vertices: int = 0, directed: bool = True):
+        """Initialize a graph.
+        
+        Args:
+            num_vertices: number of vertices (0 for empty graph, allows dynamic addition)
+            directed: whether the graph is directed (default: True)
+            
+        Note:
+            If num_vertices > 0, creates vertices 0 to num_vertices-1
+            If num_vertices = 0, starts with empty graph (vertices added via add_edge)
+        """
         self.n = num_vertices
         self.directed = directed
         # Allow dynamic vertex ids: precreate 0..n-1, but permit new keys later
-        self.adj = {i: [] for i in range(num_vertices)}
+        self.adj = {i: [] for i in range(num_vertices)} if num_vertices > 0 else {}
 
     def add_edge(self, u, v, w: int = 1):
+        """Add an edge between vertices u and v.
+        
+        Args:
+            u: source vertex id
+            v: destination vertex id  
+            w: edge weight (default: 1)
+            
+        Note:
+            For undirected graphs, automatically adds reverse edge v->u
+        """
         # Ensure vertices exist in adjacency
         if u not in self.adj:
             self.adj[u] = []
@@ -55,16 +80,69 @@ class Graph:
             # store reverse edge as well for undirected adjacency convenience
             self.adj[v].append(Edge(v, u, w, directed=self.directed))
 
-    def neighbors(self, u: int):
+    def neighbors(self, u):
+        """Get all outgoing edges from vertex u.
+        
+        Args:
+            u: vertex id
+            
+        Returns:
+            list of Edge objects outgoing from vertex u
+            Each Edge has attributes: u (source), v (destination), w (weight)
+        """
         return self.adj[u]
 
+    @classmethod
+    def from_adjacency_matrix(cls, matrix: Matrix, directed: bool = True, inf_value: int = 10**12):
+        """Create a graph from an n×n adjacency matrix.
+        
+        Args:
+            matrix: n×n Matrix with edge weights (inf_value for no edge)
+            directed: whether the graph is directed
+            inf_value: value representing no edge
+            
+        Returns:
+            Graph instance with vertices 0 to n-1
+        """
+        n = matrix.rows
+        graph = cls(n, directed)
+        
+        for i in range(n):
+            for j in range(n):
+                weight = matrix.get(i, j)
+                if weight != inf_value and weight != 0:  # Skip diagonal and non-edges
+                    graph.add_edge(i, j, weight)
+        
+        return graph
+
     def to_adjacency_matrix(self, inf_value: int = 10**12) -> Matrix:
-        m = Matrix(self.n, self.n, inf_value)
-        for i in range(self.n):
+        """Convert to adjacency matrix. Works with arbitrary vertex types.
+        
+        For non-integer vertices, creates a mapping and returns a matrix
+        with vertices mapped to indices 0 to n-1.
+        """
+        vertices = list(self.adj.keys())
+        n = len(vertices)
+        
+        if n == 0:
+            return Matrix(0, 0, inf_value)
+        
+        # Create vertex to index mapping
+        vertex_to_index = {v: i for i, v in enumerate(vertices)}
+        
+        m = Matrix(n, n, inf_value)
+        
+        # Set diagonal to 0
+        for i in range(n):
             m.set(i, i, 0)
-        for u in range(self.n):
+        
+        # Add edges
+        for u in vertices:
             for e in self.adj[u]:
-                m.set(e.u, e.v, e.w)
+                u_idx = vertex_to_index[u]
+                v_idx = vertex_to_index[e.v]
+                m.set(u_idx, v_idx, e.w)
+        
         return m
 
 

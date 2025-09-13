@@ -46,6 +46,15 @@ class Matrix:
         return not self.is_empty()
     
     def __getitem__(self, pidx, sidx=None):
+        """Get element at (row, col) or entire row.
+        
+        Args:
+            pidx: row index
+            sidx: column index (optional, if None returns entire row)
+            
+        Returns:
+            Element at (pidx, sidx) or list representing row pidx
+        """
         if pidx<0 or pidx>=self.rows or (sidx is not None and (sidx<0 or sidx>=self.cols)):
             raise IndexError("Index out of bounds")
         if sidx is None:
@@ -53,6 +62,13 @@ class Matrix:
         return self.data[pidx][sidx]
     
     def __setitem__(self, pidx, sidx, value):
+        """Set element at (row, col) or entire row.
+        
+        Args:
+            pidx: row index
+            sidx: column index (optional, if None sets entire row)
+            value: value to set (single value or list for entire row)
+        """
         if pidx<0 or pidx>=self.rows or (sidx is not None and (sidx<0 or sidx>=self.cols)):
             raise IndexError("Index out of bounds")
         if sidx is None:

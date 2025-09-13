@@ -9,7 +9,7 @@ def main():
     edges = [(0,1,5),(0,3,10),(1,2,3),(2,3,1)]
     for u, v, w in edges:
         g.add_edge(u, v, w)
-    A, P = floyd_warshall(g)
+    A, P, vertex_mapping = floyd_warshall(g)
     print("FW dist[0][3] =", A.get(0,3))  # Expected: 9
 
     dims = Matrix(1, 5)

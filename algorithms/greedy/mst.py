@@ -56,33 +56,38 @@ def prim_mst(graph: Graph, start = 0, inf_value: int = 10**12):
 
 
 class DisjointSet:
-    """Union-Find data structure for Kruskal's algorithm."""
+    """Simple Union-Find data structure that works with any hashable vertex types."""
 
-    def __init__(self, n: int):
-        self.parent = list(range(n))
-        self.rank = [0] * n
+    def __init__(self, vertices):
+        """Initialize with a list of vertices (can be strings, ints, etc.)."""
+        self.parent = {v: v for v in vertices}
+        self.rank = {v: 0 for v in vertices}
 
-    def find(self, x: int) -> int:
+    def find(self, x):
+        """Find the root of vertex x with path compression."""
         if self.parent[x] != x:
             self.parent[x] = self.find(self.parent[x])
         return self.parent[x]
 
-    def union(self, x: int, y: int) -> bool:
-        rx, ry = self.find(x), self.find(y)
-        if rx == ry:
+    def union(self, x, y):
+        """Union two vertices. Returns True if they were in different sets."""
+        root_x, root_y = self.find(x), self.find(y)
+        if root_x == root_y:
             return False
-        if self.rank[rx] < self.rank[ry]:
-            self.parent[rx] = ry
-        elif self.rank[rx] > self.rank[ry]:
-            self.parent[ry] = rx
+        
+        # Union by rank
+        if self.rank[root_x] < self.rank[root_y]:
+            self.parent[root_x] = root_y
+        elif self.rank[root_x] > self.rank[root_y]:
+            self.parent[root_y] = root_x
         else:
-            self.parent[ry] = rx
-            self.rank[rx] += 1
+            self.parent[root_y] = root_x
+            self.rank[root_x] += 1
         return True
 
 
 def kruskal_mst(graph: Graph):
-    """Kruskal's MST algorithm.
+    """Kruskal's MST algorithm that works with arbitrary vertex types.
 
     Args:
         graph: Graph instance (undirected expected)
@@ -90,16 +95,27 @@ def kruskal_mst(graph: Graph):
         mst_edges: list of (u, v, w)
         total_weight: sum of weights in MST
     """
+    # Get all vertices from the adjacency list
+    vertices = list(graph.adj.keys())
+    
+    # Collect all edges
     edges = []
-    for u in range(graph.n):
+    for u in vertices:
         for e in graph.neighbors(u):
             if graph.directed:
                 edges.append((e.w, e.u, e.v))
             else:
-                if e.u < e.v:  # avoid duplicates
+                # For undirected graphs, only add each edge once
+                # Use a consistent ordering to avoid duplicates
+                if str(e.u) <= str(e.v):  # Compare as strings to handle mixed types
                     edges.append((e.w, e.u, e.v))
-    edges.sort()
-    ds = DisjointSet(graph.n)
+    
+    # Sort edges by weight
+    edges.sort()  # we could also do this with a custom insert function
+    
+    # Initialize disjoint set with all vertices
+    ds = DisjointSet(vertices)
+    
     mst = []
     total = 0
     for w, u, v in edges:
