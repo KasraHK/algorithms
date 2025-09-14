@@ -80,7 +80,9 @@ class FibonacciHeap:
         if z is not None:
             # add children to root list
             if z.child is not None:
-                children = [x for x in self._iterate_list(z.child)]
+                children = []
+                for x in self._iterate_list(z.child):
+                    children.append(x)
                 for x in children:
                     self._merge_with_root_list(x)
                     x.parent = None
@@ -158,7 +160,10 @@ class FibonacciHeap:
         import math
         max_degree = int(math.log2(self.n)) + 2 if self.n > 0 else 1
         A = [None] * (max_degree + 1)
-        roots = [w for w in self._iterate_list(self.min)]
+        roots = []
+        if self.min:
+            for w in self._iterate_list(self.min):
+                roots.append(w)
         for w in roots:
             x = w
             d = x.degree

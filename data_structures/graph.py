@@ -55,8 +55,8 @@ class Graph:
         """
         self.n = num_vertices
         self.directed = directed
-        # Allow dynamic vertex ids: precreate 0..n-1, but permit new keys later
-        self.adj = {i: [] for i in range(num_vertices)} if num_vertices > 0 else {}
+        # Adjacency now uses a dict mapping vertex ID to a Matrix of edges
+        self.adj = {i: Matrix(0, 3) for i in range(num_vertices)} if num_vertices > 0 else {}
 
     def add_edge(self, u, v, w: int = 1):
         """Add an edge between vertices u and v.
@@ -71,14 +71,15 @@ class Graph:
         """
         # Ensure vertices exist in adjacency
         if u not in self.adj:
-            self.adj[u] = []
+            self.adj[u] = Matrix(0, 3) # Store as (v, w, directed_flag)
         if v not in self.adj:
-            self.adj[v] = []
-        e = Edge(u, v, w, directed=self.directed)
-        self.adj[u].append(e)
+            self.adj[v] = Matrix(0, 3)
+        
+        # Append a new row for the edge
+        self.adj[u].add_row([v, w, 1 if self.directed else 0])
         if not self.directed:
             # store reverse edge as well for undirected adjacency convenience
-            self.adj[v].append(Edge(v, u, w, directed=self.directed))
+            self.adj[v].add_row([u, w, 0])
 
     def neighbors(self, u):
         """Get all outgoing edges from vertex u.
@@ -90,7 +91,15 @@ class Graph:
             list of Edge objects outgoing from vertex u
             Each Edge has attributes: u (source), v (destination), w (weight)
         """
-        return self.adj[u]
+        edge_matrix = self.adj.get(u)
+        if not edge_matrix or edge_matrix.is_empty():
+            return []
+        
+        edges = []
+        for i in range(edge_matrix.rows):
+            v, w, directed_val = edge_matrix.get(i, 0), edge_matrix.get(i, 1), edge_matrix.get(i, 2)
+            edges.append(Edge(u, v, w, bool(directed_val)))
+        return edges
 
     @classmethod
     def from_adjacency_matrix(cls, matrix: Matrix, directed: bool = True, inf_value: int = 10**12):
@@ -137,11 +146,13 @@ class Graph:
             m.set(i, i, 0)
         
         # Add edges
-        for u in vertices:
-            for e in self.adj[u]:
-                u_idx = vertex_to_index[u]
-                v_idx = vertex_to_index[e.v]
-                m.set(u_idx, v_idx, e.w)
+        for u, edge_matrix in self.adj.items():
+            u_idx = vertex_to_index[u]
+            for i in range(edge_matrix.rows):
+                v, w, _ = edge_matrix.get(i, 0), edge_matrix.get(i, 1), edge_matrix.get(i, 2)
+                if v in vertex_to_index:
+                    v_idx = vertex_to_index[v]
+                    m.set(u_idx, v_idx, w)
         
         return m
 

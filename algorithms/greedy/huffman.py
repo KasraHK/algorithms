@@ -17,7 +17,7 @@ def build_huffman_tree(symbols_with_freq):
         heap.push((freq, counter, node))
         counter += 1
 
-    while len(heap) > 1:
+    for i in range(len(heap)-1):
         f1, _, n1 = heap.pop()
         f2, _, n2 = heap.pop()
         parent = TreeNode(key=f1 + f2, value=None)
@@ -41,7 +41,7 @@ def huffman_codes(root: TreeNode):
     def dfs(node: TreeNode, prefix: str):
         if node is None:
             return
-        if node.is_leaf() and node.value is not None:
+        if node and node.value is not None:
             codes[node.value] = prefix or "0"
             return
         dfs(node.left, prefix + "0")

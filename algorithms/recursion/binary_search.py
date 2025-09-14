@@ -1,7 +1,7 @@
 from data_structures.matrix import Matrix
 
 def binary_search(matrix: Matrix, target: int) -> bool:  # this matrix is a sorted vector
-    """Iterative binary search on a sorted 1xN Matrix vector.
+    """Iterative binary search on a 1xN sorted Matrix vector.
 
     Args:
         matrix: Matrix(1, N) sorted in non-decreasing order
@@ -9,9 +9,9 @@ def binary_search(matrix: Matrix, target: int) -> bool:  # this matrix is a sort
     Returns:
         True if target exists, otherwise False
     """
-    if matrix.is_empty() or not matrix[0]:
+    if matrix.is_empty():
         return False
-    cols = len(matrix[0])
+    cols = matrix.cols
     left, right = 0, cols - 1
     while left <= right:
         mid = (left + right) // 2

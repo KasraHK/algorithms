@@ -1,5 +1,6 @@
 from data_structures.graph import Graph
 from data_structures.heap import MinHeap
+from data_structures.matrix import Matrix
 
 
 def initialize_single_source(graph: Graph, s, inf_value: int = 10**12):
@@ -54,15 +55,29 @@ def bellman_ford(graph: Graph, s, inf_value: int = 10**12):
         parent: dict mapping vertex -> predecessor on the shortest path
     """
     d, parent = initialize_single_source(graph, s, inf_value)
-    edges = []
+    
+    edge_list = []
     for u in graph.adj.keys():
         for e in graph.neighbors(u):
-            edges.append((e.u, e.v, e.w))
+            edge_list.append((e.u, e.v, e.w))
+
+    if not edge_list:
+        return True, d, parent
+
+    edges = Matrix(len(edge_list), 3)
+    for i, (u, v, w) in enumerate(edge_list):
+        edges.set(i, 0, u)
+        edges.set(i, 1, v)
+        edges.set(i, 2, w)
+
     for _ in range(len(graph.adj) - 1):
-        for u, v, w in edges:
+        for i in range(edges.rows):
+            u, v, w = edges.get(i, 0), edges.get(i, 1), edges.get(i, 2)
             if d.get(u, inf_value) < inf_value:
                 relax(u, v, w, d, parent)
-    for u, v, w in edges:
+
+    for i in range(edges.rows):
+        u, v, w = edges.get(i, 0), edges.get(i, 1), edges.get(i, 2)
         if d.get(u, inf_value) + w < d.get(v, inf_value):
             return False, d, parent
     return True, d, parent
@@ -81,7 +96,7 @@ def dijkstra(graph: Graph, s, inf_value: int = 10**12):
         inf_value: infinity sentinel for unreachable vertices
 
     Returns:
-        order: list of vertices in the order they were finalized (heap pops)
+        order: Matrix of vertices in the order they were finalized (heap pops)
         d: dict mapping vertex -> shortest known distance from s
         parent: dict mapping vertex -> predecessor on the shortest path
     """
@@ -89,21 +104,26 @@ def dijkstra(graph: Graph, s, inf_value: int = 10**12):
     heap = MinHeap()
     visited = {u: False for u in graph.adj.keys()}
     heap.push((0, 0, s))  # (distance, tie-breaker, vertex)
-    order = []
+    order_list = []
     tiebreak = 0
     while not heap.is_empty():
         _, _, u = heap.pop()
-        if visited[u]:
+        if visited.get(u, False):
             continue
         visited[u] = True
-        order.append(u)
+        order_list.append(u)
         for e in graph.neighbors(u):
             v = e.v
-            if not visited[v] and d[u] + e.w < d.get(v, inf_value):
+            if not visited.get(v, False) and d[u] + e.w < d.get(v, inf_value):
                 d[v] = d[u] + e.w
                 parent[v] = u
                 tiebreak += 1
                 heap.push((d[v], tiebreak, v))
-    return order, d, parent
+
+    order_matrix = Matrix(1, len(order_list))
+    for i, vertex in enumerate(order_list):
+        order_matrix.set(0, i, vertex)
+        
+    return order_matrix, d, parent
 
 

@@ -68,18 +68,33 @@ def sel(matrix, l:int, r:int, k: int) -> int:
     """Median of medians selection (deterministic select)."""
     n = r - l + 1
     if n <= 5:
-        sub = [matrix.get(0, i) for i in range(l, r + 1)]
-        sub.sort()
-        return sub[k - 1]
-    m = (n + 4) // 5
-    b = Matrix(1, m)
-    for i in range(m):
-        b[i] = sel(matrix, 5 * i - 4, 5 * i, 3)
-    x = sel(b, 0, m - 1, (m + 1) // 2)
-    j = partition(matrix, l, r, x)
+        # Create a sub-matrix and sort it to find the k-th element
+        sub_matrix = Matrix(1, n)
+        for i in range(n):
+            sub_matrix.set(0, i, matrix.get(0, l + i))
+        sub_matrix.quick_sort()
+        return sub_matrix.get(0, k - 1)
+
+    num_medians = (n + 4) // 5
+    medians = Matrix(1, num_medians)
+    for i in range(num_medians):
+        sub_l = l + 5 * i
+        sub_r = min(sub_l + 4, r)
+        # The median is the middle element of a small sorted group
+        median_k = ((sub_r - sub_l + 1) + 1) // 2
+        medians.set(0, i, sel(matrix, sub_l, sub_r, median_k))
+
+    # Find the median of medians
+    pivot_val = sel(medians, 0, medians.len() - 1, (medians.len() + 1) // 2)
+    
+    j = partition(matrix, l, r, pivot_val)
+    
+    # Number of elements in the low partition + pivot
     i = j - l + 1
+    
     if k == i:
         return matrix.get(0, j)
     elif k < i:
         return sel(matrix, l, j - 1, k)
-    return sel(matrix, j + 1, r, k - i)
+    else:
+        return sel(matrix, j + 1, r, k - i)

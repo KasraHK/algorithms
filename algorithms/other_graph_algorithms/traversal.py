@@ -1,5 +1,6 @@
 from data_structures.graph import Graph
 from data_structures.queue import Queue
+from data_structures.matrix import Matrix
 
 
 def dfs(graph: Graph):
@@ -66,10 +67,10 @@ def dfs_plus(graph: Graph):
     f = {u: 0 for u in graph.adj.keys()}
     parent = {u: None for u in graph.adj.keys()}
     time = [0]
-    edges = { 'tree': [], 'back': [], 'forward': [], 'cross': [] }
+    edges = { 'tree': Matrix(0, 2), 'back': Matrix(0, 2), 'forward': Matrix(0, 2), 'cross': Matrix(0, 2) }
     low = {u: 0 for u in graph.adj.keys()}
-    articulation = set()
-    bridges = []
+    articulation_set = set()
+    bridges_matrix = Matrix(0, 2)
 
     order = []
 
@@ -81,35 +82,35 @@ def dfs_plus(graph: Graph):
         for e in graph.neighbors(u):
             v = e.v
             if color[v] == 'white':
-                edges['tree'].append((u, v))
+                edges['tree'].add_row([u, v])
                 parent[v] = u
                 children += 1
                 visit(v)
                 low[u] = min(low[u], low[v])
                 if not graph.directed and low[v] > d[u]:
-                    bridges.append((u, v))
+                    bridges_matrix.add_row([u, v])
                 if not graph.directed and not root and low[v] >= d[u]:
-                    articulation.add(u)
+                    articulation_set.add(u)
             elif color[v] == 'gray':
-                edges['back'].append((u, v))
+                edges['back'].add_row([u, v])
                 low[u] = min(low[u], d[v])
             else:
                 if d[u] < d[v]:
-                    edges['forward'].append((u, v))
+                    edges['forward'].add_row([u, v])
                 else:
-                    edges['cross'].append((u, v))
+                    edges['cross'].add_row([u, v])
         color[u] = 'black'
         time[0] += 1
         f[u] = time[0]
         order.append(u)
         if root and not graph.directed and children > 1:
-            articulation.add(u)
+            articulation_set.add(u)
 
     for u in list(graph.adj.keys()):
         if color[u] == 'white':
             visit(u, root=True)
 
-    scc = []
+    scc_matrices = []
     if graph.directed:
         # Kosaraju: run DFS on transpose using reverse finish order
         gt = Graph(0, directed=True)
@@ -117,22 +118,29 @@ def dfs_plus(graph: Graph):
             for e in graph.neighbors(u):
                 gt.add_edge(e.v, e.u, e.w)
         color2 = {u: 'white' for u in gt.adj.keys()}
-        comp = []
-
-        def visit_t(u):
+        
+        def visit_t(u, current_comp_list):
             color2[u] = 'gray'
-            comp.append(u)
+            current_comp_list.append(u)
             for e in gt.neighbors(u):
                 v = e.v
                 if color2[v] == 'white':
-                    visit_t(v)
+                    visit_t(v, current_comp_list)
             color2[u] = 'black'
 
         for u in reversed(order):
             if color2[u] == 'white':
-                comp = []
-                visit_t(u)
-                scc.append(comp)
+                comp_list = []
+                visit_t(u, comp_list)
+                comp_matrix = Matrix(1, len(comp_list))
+                for i, vertex in enumerate(comp_list):
+                    comp_matrix.set(0, i, vertex)
+                scc_matrices.append(comp_matrix)
+    
+    articulation_list = sorted(list(articulation_set))
+    articulation_matrix = Matrix(1, len(articulation_list))
+    for i, vertex in enumerate(articulation_list):
+        articulation_matrix.set(0, i, vertex)
 
     return {
         'color': color,
@@ -140,9 +148,9 @@ def dfs_plus(graph: Graph):
         'f': f,
         'parent': parent,
         'edges': edges,
-        'scc': scc,
-        'articulation': sorted(list(articulation)),
-        'bridges': bridges,
+        'scc': scc_matrices,
+        'articulation': articulation_matrix,
+        'bridges': bridges_matrix,
     }
 
 
@@ -160,7 +168,7 @@ def bfs(graph: Graph, s, inf_value: int = 10**12):
         color: dict vertex -> 'white'|'gray'|'black'
         d: dict vertex -> BFS distance from s
         parent: dict vertex -> predecessor
-        order: list of vertices in dequeue order
+        order: Matrix of vertices in dequeue order
     """
     color = {u: 'white' for u in graph.adj.keys()}
     d = {u: inf_value for u in graph.adj.keys()}
@@ -169,18 +177,23 @@ def bfs(graph: Graph, s, inf_value: int = 10**12):
     color[s] = 'gray'
     d[s] = 0
     q.enqueue(s)
-    order = []
+    order_list = []
     while not q.is_empty():
         u = q.dequeue()
-        order.append(u)
+        order_list.append(u)
         for e in graph.neighbors(u):
             v = e.v
-            if color[v] == 'white':
+            if color.get(v) == 'white':
                 color[v] = 'gray'
                 d[v] = d[u] + 1
                 parent[v] = u
                 q.enqueue(v)
         color[u] = 'black'
-    return color, d, parent, order
+
+    order_matrix = Matrix(1, len(order_list))
+    for i, vertex in enumerate(order_list):
+        order_matrix.set(0, i, vertex)
+        
+    return color, d, parent, order_matrix
 
 

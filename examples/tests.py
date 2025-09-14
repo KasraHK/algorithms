@@ -6,7 +6,7 @@ from algorithms.recursion.binary_search import binary_search, recursive_binary_s
 from data_structures.graph import Graph
 from algorithms.other_graph_algorithms.shortest_paths import dijkstra, bellman_ford
 from algorithms.greedy.mst import prim_mst
-
+from algorithms.greedy.greedy_knapsack import fractional_knapsack
 
 def print_header(title):
     print("\n==", title, "==")
@@ -101,10 +101,23 @@ def test_prim_strings_total():
 
 
 if __name__ == "__main__":
-    test_matrix_sort_edge_cases()
-    test_selection_edge_cases()
-    test_binary_search_edge_cases()
-    test_queue_edge_cases()
+    # test_matrix_sort_edge_cases()
+    # test_selection_edge_cases()
+    # test_binary_search_edge_cases()
+    # test_queue_edge_cases()
     test_graph_dijkstra_strings_unreachable()
-    test_bellman_ford_negative_cycle_strings()
-    test_prim_strings_total()
+    # test_bellman_ford_negative_cycle_strings()
+    # test_prim_strings_total()
+    
+    # pi = [10, 15, 5, 8, 12, 20, 4]
+    # wi = [5, 4, 3, 6, 1, 4, 1]
+    # pmatrix = Matrix(1, 7)
+    # for i in range(7):
+    #     pmatrix.set(0, i, pi[i])
+    # wmatrix = Matrix(1, 7)
+    # for i in range(7):
+    #     wmatrix.set(0, i, wi[i])
+    
+    # print(fractional_knapsack(pmatrix, wmatrix, 20))
+    
+    

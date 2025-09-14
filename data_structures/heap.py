@@ -1,6 +1,9 @@
 """Binary heap implementations: MinHeap and MaxHeap."""
 
 
+from data_structures.matrix import Matrix
+
+
 class HeapEmptyError(Exception):
     """Raised when extracting from an empty heap."""
 
@@ -13,13 +16,13 @@ class MinHeap:
     """
 
     def __init__(self):
-        self._data = []
+        self._data = Matrix(1, 0)
 
     def __len__(self):
-        return len(self._data)
+        return self._data.cols
 
     def is_empty(self) -> bool:
-        return len(self._data) == 0
+        return self._data.cols == 0
 
     def push(self, item):
         """Insert item into heap.
@@ -28,29 +31,34 @@ class MinHeap:
             item: comparable object
         Returns: None
         """
-        self._data.append(item)
-        self._sift_up(len(self._data) - 1)
+        self._data.add_column([item])
+        self._sift_up(self._data.cols - 1)
 
     def peek(self):
         """Return min item without removing it.
 
         Raises HeapEmptyError if empty.
         """
-        if not self._data:
+        if self.is_empty():
             raise HeapEmptyError("Heap is empty")
-        return self._data[0]
+        return self._data.get(0, 0)
 
     def pop(self):
         """Remove and return min item.
 
         Raises HeapEmptyError if empty.
         """
-        if not self._data:
+        if self.is_empty():
             raise HeapEmptyError("Heap is empty")
-        last_idx = len(self._data) - 1
+        last_idx = self._data.cols - 1
         self._swap(0, last_idx)
-        item = self._data.pop()
-        if self._data:
+        item = self._data.get(0, last_idx)
+        self._data.cols -= 1
+        new_data = Matrix(1, self._data.cols)
+        for i in range(self._data.cols):
+            new_data.set(0, i, self._data.get(0, i))
+        self._data = new_data
+        if not self.is_empty():
             self._sift_down(0)
         return item
 
@@ -64,25 +72,25 @@ class MinHeap:
         return 2 * i + 2
 
     def _swap(self, i: int, j: int):
-        self._data[i], self._data[j] = self._data[j], self._data[i]
+        self._data.swap(i, j)
 
     def _sift_up(self, i: int):
         while i > 0:
             p = self._parent(i)
-            if self._data[i] < self._data[p]:
+            if self._data.get(0, i) < self._data.get(0, p):
                 self._swap(i, p)
                 i = p
             else:
                 break
 
     def _sift_down(self, i: int):
-        n = len(self._data)
+        n = self._data.cols
         while True:
             l, r = self._left(i), self._right(i)
             smallest = i
-            if l < n and self._data[l] < self._data[smallest]:
+            if l < n and self._data.get(0, l) < self._data.get(0, smallest):
                 smallest = l
-            if r < n and self._data[r] < self._data[smallest]:
+            if r < n and self._data.get(0, r) < self._data.get(0, smallest):
                 smallest = r
             if smallest == i:
                 break
@@ -96,20 +104,20 @@ class MaxHeap(MinHeap):
     def _sift_up(self, i: int):
         while i > 0:
             p = self._parent(i)
-            if self._data[i] > self._data[p]:
+            if self._data.get(0, i) > self._data.get(0, p):
                 self._swap(i, p)
                 i = p
             else:
                 break
 
     def _sift_down(self, i: int):
-        n = len(self._data)
+        n = self._data.cols
         while True:
             l, r = self._left(i), self._right(i)
             largest = i
-            if l < n and self._data[l] > self._data[largest]:
+            if l < n and self._data.get(0, l) > self._data.get(0, largest):
                 largest = l
-            if r < n and self._data[r] > self._data[largest]:
+            if r < n and self._data.get(0, r) > self._data.get(0, largest):
                 largest = r
             if largest == i:
                 break

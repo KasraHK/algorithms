@@ -15,19 +15,30 @@ def fractional_knapsack(p: Matrix, w: Matrix, capacity: int):
     if p.rows != 1 or w.rows != 1 or p.cols != w.cols:
         raise ValueError("p and w must be 1xN and same length")
     n = p.cols
-    idx = list(range(n))
+    idx_matrix = Matrix(1, n)
+    for i in range(n):
+        idx_matrix.set(0, i, i)
+    
     # sort indices by ratio p/w descending
-    idx.sort(key=lambda i: p.get(0, i) / w.get(0, i), reverse=True)
+    # This is a simplified sort for demonstration. A more robust implementation
+    # would be to enhance the Matrix class with a sort method that accepts a key.
+    # For now, we convert to a list, sort, and convert back.
+    idx_list = [idx_matrix.get(0, i) for i in range(n)]
+    idx_list.sort(key=lambda i: p.get(0, i) / w.get(0, i), reverse=True)
+    for i in range(n):
+        idx_matrix.set(0, i, idx_list[i])
+
     x = Matrix(1, n, 0)
     remaining = capacity
     total_value = 0
-    for i in idx:
+    for i in range(n):
+        item_idx = idx_matrix.get(0, i)
         if remaining <= 0:
             break
-        take = min(w.get(0, i), remaining)
-        frac = take / w.get(0, i)
-        x.set(0, i, frac)
-        total_value += frac * p.get(0, i)
+        take = min(w.get(0, item_idx), remaining)
+        frac = take / w.get(0, item_idx)
+        x.set(0, item_idx, frac)
+        total_value += frac * p.get(0, item_idx)
         remaining -= take
     return x, total_value
 

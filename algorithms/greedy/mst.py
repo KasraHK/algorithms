@@ -1,8 +1,9 @@
 from data_structures.graph import Graph, Edge
 from data_structures.heap import MinHeap
+from data_structures.matrix import Matrix
 
 
-def prim_mst(graph: Graph, start = 0, inf_value: int = 10**12):
+def prim_mst(graph: Graph, start=0, inf_value: int = 10**12):
     """Prim's MST algorithm using a min-heap.
 
     This version supports arbitrary vertex ids (e.g., strings) by using
@@ -17,7 +18,7 @@ def prim_mst(graph: Graph, start = 0, inf_value: int = 10**12):
         parent: dict mapping vertex -> parent in the MST (None for root)
         key: dict mapping vertex -> connecting edge weight in the MST
         order: list of vertices in the order they were finalized
-        mst_edges: list of (parent, vertex, weight) selected in the MST
+        mst_edges: Matrix of (parent, vertex, weight) selected in the MST
         total_cost: sum of weights in the MST
     """
     # Use dicts keyed by actual vertex ids to support non-integer labels
@@ -50,9 +51,15 @@ def prim_mst(graph: Graph, start = 0, inf_value: int = 10**12):
                 tiebreak += 1
                 heap.push((key[v], tiebreak, v))
     # Build explicit MST edge list (parent[v] --key[v]--> v)
-    mst_edges = [(pu, v, key[v]) for v, pu in parent.items() if pu is not None]
-    total_cost = sum(w for _, _, w in mst_edges)
-    return parent, key, order, mst_edges, total_cost
+    mst_edges_list = [(pu, v, key[v]) for v, pu in parent.items() if pu is not None]
+    mst_edges_matrix = Matrix(len(mst_edges_list), 3)
+    for i, (pu, v, w) in enumerate(mst_edges_list):
+        mst_edges_matrix.set(i, 0, pu)
+        mst_edges_matrix.set(i, 1, v)
+        mst_edges_matrix.set(i, 2, w)
+    
+    total_cost = sum(w for _, _, w in mst_edges_list)
+    return parent, key, order, mst_edges_matrix, total_cost
 
 
 class DisjointSet:
@@ -92,36 +99,48 @@ def kruskal_mst(graph: Graph):
     Args:
         graph: Graph instance (undirected expected)
     Returns:
-        mst_edges: list of (u, v, w)
+        mst_edges: Matrix of (u, v, w)
         total_weight: sum of weights in MST
     """
     # Get all vertices from the adjacency list
     vertices = list(graph.adj.keys())
     
-    # Collect all edges
-    edges = []
+    # Collect all edges into a list first
+    edge_list = []
     for u in vertices:
         for e in graph.neighbors(u):
-            if graph.directed:
-                edges.append((e.w, e.u, e.v))
-            else:
-                # For undirected graphs, only add each edge once
-                # Use a consistent ordering to avoid duplicates
-                if str(e.u) <= str(e.v):  # Compare as strings to handle mixed types
-                    edges.append((e.w, e.u, e.v))
+            # For undirected graphs, only add each edge once
+            if graph.directed or str(e.u) <= str(e.v):
+                edge_list.append((e.w, e.u, e.v))
     
-    # Sort edges by weight
-    edges.sort()  # we could also do this with a custom insert function
+    if not edge_list:
+        return Matrix(0, 3), 0
+
+    # Create a matrix from the list of edges
+    edges = Matrix(len(edge_list), 3)
+    for i, (w, u, v) in enumerate(edge_list):
+        edges.set(i, 0, w)
+        edges.set(i, 1, u)
+        edges.set(i, 2, v)
+
+    # A proper matrix sort on a column would be ideal.
+    # For now, we extract, sort, and rebuild the matrix.
+    edge_data_sorted = sorted([tuple(edges.data[i]) for i in range(edges.rows)])
+    for i, (w, u, v) in enumerate(edge_data_sorted):
+        edges.set(i, 0, w)
+        edges.set(i, 1, u)
+        edges.set(i, 2, v)
     
     # Initialize disjoint set with all vertices
     ds = DisjointSet(vertices)
     
-    mst = []
+    mst_matrix = Matrix(0, 3)
     total = 0
-    for w, u, v in edges:
+    for i in range(edges.rows):
+        w, u, v = edges.get(i, 0), edges.get(i, 1), edges.get(i, 2)
         if ds.union(u, v):
-            mst.append((u, v, w))
+            mst_matrix.add_row([u, v, w])
             total += w
-    return mst, total
+    return mst_matrix, total
 
 

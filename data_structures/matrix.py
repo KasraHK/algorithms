@@ -318,5 +318,5 @@ class Matrix:
             result.set_submatrix(mid, n, mid, n, C22)
 
             return result
-        
-        
+
+
