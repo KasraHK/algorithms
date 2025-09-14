@@ -221,23 +221,33 @@ class Matrix:
         return result
     
     def add(self, other):
-        """Element-wise addition; returns a new Matrix."""
-        if self.rows != other.rows or self.cols != other.cols:
-            raise ValueError("Matrices must have the same dimensions to add")
-        result = Matrix(self.rows, self.cols)
-        for i in range(self.rows):
-            for j in range(self.cols):
-                result.set(i, j, self.get(i, j) + other.get(i, j))
+        """Element-wise addition; returns a new Matrix.
+        
+        If matrices have different dimensions, the smaller one is padded with zeros.
+        """
+        max_rows = max(self.rows, other.rows)
+        max_cols = max(self.cols, other.cols)
+        result = Matrix(max_rows, max_cols)
+        for i in range(max_rows):
+            for j in range(max_cols):
+                val1 = self.get(i, j) if i < self.rows and j < self.cols else 0
+                val2 = other.get(i, j) if i < other.rows and j < other.cols else 0
+                result.set(i, j, val1 + val2)
         return result
     
     def subtract(self, other):
-        """Element-wise subtraction; returns a new Matrix."""
-        if self.rows != other.rows or self.cols != other.cols:
-            raise ValueError("Matrices must have the same dimensions to subtract")
-        result = Matrix(self.rows, self.cols)
-        for i in range(self.rows):
-            for j in range(self.cols):
-                result.set(i, j, self.get(i, j) - other.get(i, j))
+        """Element-wise subtraction; returns a new Matrix.
+        
+        If matrices have different dimensions, the smaller one is padded with zeros.
+        """
+        max_rows = max(self.rows, other.rows)
+        max_cols = max(self.cols, other.cols)
+        result = Matrix(max_rows, max_cols)
+        for i in range(max_rows):
+            for j in range(max_cols):
+                val1 = self.get(i, j) if i < self.rows and j < self.cols else 0
+                val2 = other.get(i, j) if i < other.rows and j < other.cols else 0
+                result.set(i, j, val1 - val2)
         return result
     
     def multiply(self, other):
@@ -277,46 +287,90 @@ class Matrix:
             for j in range(col_start, col_end):
                 self.set(i, j, sub.get(i - row_start, j - col_start))
     
+    def _square_matrix_subtract(self, other):
+        """Strict element-wise subtraction for same-sized square matrices."""
+        result = Matrix(self.rows, self.cols)
+        for i in range(self.rows):
+            for j in range(self.cols):
+                result.set(i, j, self.get(i, j) - other.get(i, j))
+        return result
+
+    def _square_matrix_add(self, other):
+        """Strict element-wise addition for same-sized square matrices."""
+        result = Matrix(self.rows, self.cols)
+        for i in range(self.rows):
+            for j in range(self.cols):
+                result.set(i, j, self.get(i, j) + other.get(i, j))
+        return result
     
+    def _square_matrix_add(self, other):
+        """Strict element-wise addition for same-sized square matrices."""
+        result = Matrix(self.rows, self.cols)
+        for i in range(self.rows):
+            for j in range(self.cols):
+                result.set(i, j, self.get(i, j) + other.get(i, j))
+        return result
+
+    def _square_matrix_subtract(self, other):
+        """Strict element-wise subtraction for same-sized square matrices."""
+        result = Matrix(self.rows, self.cols)
+        for i in range(self.rows):
+            for j in range(self.cols):
+                result.set(i, j, self.get(i, j) - other.get(i, j))
+        return result
+
     # Strassen's matrix multiplication
     def strassen_multiply(self, other):
-        """Strassen's multiplication for same-size square matrices; returns new Matrix."""
-        if self.rows != self.cols or other.rows != other.cols or self.rows != other.rows:  # only for square matrices of same size
+        """Strassen's multiplication for square matrices of size 2^n; returns new Matrix."""
+        if self.rows != self.cols or other.rows != other.cols or self.rows != other.rows:
             raise ValueError("Strassen's algorithm requires square matrices of the same size")
+
         n = self.rows
+        if n == 0:
+            return Matrix(0, 0)
+
+        # Check if size is a power of two
+        if (n & (n - 1)) != 0:
+            raise ValueError("Strassen's algorithm requires matrix dimensions to be powers of two")
+
+        # Base case
         if n == 1:
-            return Matrix(1, 1, self.get(0, 0) * other.get(0, 0))
-        else:
-            mid = n // 2
-            A11 = self.submatrix(0, mid, 0, mid)
-            A12 = self.submatrix(0, mid, mid, n)
-            A21 = self.submatrix(mid, n, 0, mid)
-            A22 = self.submatrix(mid, n, mid, n)
+            res = Matrix(1, 1)
+            res.set(0, 0, self.get(0, 0) * other.get(0, 0))
+            return res
 
-            B11 = other.submatrix(0, mid, 0, mid)
-            B12 = other.submatrix(0, mid, mid, n)
-            B21 = other.submatrix(mid, n, 0, mid)
-            B22 = other.submatrix(mid, n, mid, n)
+        mid = n // 2
+        A11 = self.submatrix(0, 0, mid, mid)
+        A12 = self.submatrix(0, mid, mid, n)
+        A21 = self.submatrix(mid, 0, n, mid)
+        A22 = self.submatrix(mid, mid, n, n)
 
-            P = (A11.add(A22)).strassen_multiply(B11.add(B22))
-            Q = (A21.add(A22)).strassen_multiply(B11)
-            R = A11.strassen_multiply(B12.subtract(B22))
-            S = A22.strassen_multiply(B21.subtract(B11))
-            T = (A11.add(A12)).strassen_multiply(B22)
-            U = (A21.subtract(A11)).strassen_multiply(B11.add(B12))
-            V = (A12.subtract(A22)).strassen_multiply(B21.add(B22))
+        B11 = other.submatrix(0, 0, mid, mid)
+        B12 = other.submatrix(0, mid, mid, n)
+        B21 = other.submatrix(mid, 0, n, mid)
+        B22 = other.submatrix(mid, mid, n, n)
 
-            C11 = P.add(S).subtract(T).add(V)
-            C12 = R.add(T)
-            C21 = Q.add(S)
-            C22 = P.subtract(Q).add(R).add(U)
+        # Recursive calls on subproblems
+        P = (A11.add(A22)).strassen_multiply(B11.add(B22))
+        Q = (A21.add(A22)).strassen_multiply(B11)
+        R = A11.strassen_multiply(B12.subtract(B22))
+        S = A22.strassen_multiply(B21.subtract(B11))
+        T = (A11.add(A12)).strassen_multiply(B22)
+        U = (A21.subtract(A11)).strassen_multiply(B11.add(B12))
+        V = (A12.subtract(A22)).strassen_multiply(B21.add(B22))
 
-            result = Matrix(n, n)
-            result.set_submatrix(0, mid, 0, mid, C11)
-            result.set_submatrix(0, mid, mid, n, C12)
-            result.set_submatrix(mid, n, 0, mid, C21)
-            result.set_submatrix(mid, n, mid, n, C22)
+        # Combine results
+        C11 = P.add(S).subtract(T).add(V)
+        C12 = R.add(T)
+        C21 = Q.add(S)
+        C22 = P.subtract(Q).add(R).add(U)
 
-            return result
+        result = Matrix(n, n)
+        result.set_submatrix(0, mid, 0, mid, C11)
+        result.set_submatrix(0, mid, mid, n, C12)
+        result.set_submatrix(mid, n, 0, mid, C21)
+        result.set_submatrix(mid, n, mid, n, C22)
+
+        return result
 
 

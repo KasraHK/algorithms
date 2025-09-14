@@ -14,14 +14,14 @@ def matrix_multiplication_examples():
     C = A.multiply(B)
     print("Result (A * B):\n", C)
 
-    # Strassen's Multiplication - Normal Case (requires square matrices of same size, power of 2 for simplicity)
+    # Strassen's Multiplication - Normal Case
     print("\n--- Normal Case: Strassen's Multiplication ---")
     A_sq = Matrix(4, 4)
     B_sq = Matrix(4, 4)
     for i in range(4):
         for j in range(4):
-            A_sq.set(i, j, i + j)
-            B_sq.set(i, j, i - j)
+            A_sq.set(i, j, i + j + 1)
+            B_sq.set(i, j, i - j + 1)
     print("Matrix A (square):\n", A_sq)
     print("Matrix B (square):\n", B_sq)
     C_strassen = A_sq.strassen_multiply(B_sq)
@@ -40,14 +40,16 @@ def matrix_multiplication_examples():
     C_ident = A_rect.multiply(I)
     print("Result (A * I):\n", C_ident)
 
-    # Edge case: Strassen with 1x1 matrices
-    print("\n--- Edge Case: Strassen 1x1 ---")
-    A_1x1 = Matrix(1, 1, 5)
-    B_1x1 = Matrix(1, 1, 10)
-    print("Matrix A:\n", A_1x1)
-    print("Matrix B:\n", B_1x1)
-    C_1x1 = A_1x1.strassen_multiply(B_1x1)
-    print("Result (Strassen 1x1):\n", C_1x1)
+    # Edge case: Strassen with 2x2 matrices (smallest power of 2)
+    print("\n--- Edge Case: Strassen 2x2 ---")
+    A_2x2 = Matrix(2, 2)
+    B_2x2 = Matrix(2, 2)
+    A_2x2.data = [[1, 2], [3, 4]]
+    B_2x2.data = [[5, 6], [7, 8]]
+    print("Matrix A:\n", A_2x2)
+    print("Matrix B:\n", B_2x2)
+    C_2x2 = A_2x2.strassen_multiply(B_2x2)
+    print("Result (Strassen 2x2):\n", C_2x2)
 
 if __name__ == "__main__":
     matrix_multiplication_examples()
